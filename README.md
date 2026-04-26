@@ -9,3 +9,6 @@ To use, first compile the code using the following command:
 Embed:  ``./project.exe -e <input_bmp> <output_bmp> <input_txt>`` 
 
 Extract: ``./project.exe -d <input_bmp> <output_txt>``
+
+
+stb_image.h and stb_image_write.h are libraries taken form ```https://github.com/nothings/stb/blob/master/stb_image.h```
