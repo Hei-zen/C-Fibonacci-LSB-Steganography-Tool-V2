@@ -17,39 +17,45 @@ void GIFImage::hide(Payload& payload){
         return;
     }
 
-    int fileSize=getFileSize(in);
     int msgSize=getFileSize(msg);
     payload.setSize(msgSize);
 
     unsigned char head[13];
-    fread(head, 1, 13, in);
-    int header=13;
+    if(fread(head, 1, 13, in) != 13){
+        cout<<"Error reading GIF header.\n";
+        fclose(in); fclose(out); fclose(msg); return;
+    }
+
+    int paletteBytes = 0;
     if(head[10] & 0x80){
         int paletteSize = (head[10] & 0x07) + 1;
-        header+=3*(1 << paletteSize); 
-    }
-    fseek(in, 0, SEEK_SET);
-
-    if(fileSize <= header || 32 + (long)msgSize * 8 > fileSize - header){
-        cout<<"Payload too large for this specific image.\n";
-        fclose(in);
-        fclose(out);
-        fclose(msg);
-        return;
+        paletteBytes = 3 * (1 << paletteSize); 
     }
 
-    for(int i=0; i<header; i++)
-        fputc(fgetc(in), out);
+    if(paletteBytes == 0 || 32 + (long)msgSize * 8 > paletteBytes){
+        cout<<"Payload too large for the Global Color Table (max capacity: "<< (paletteBytes > 32 ? (paletteBytes-32)/8 : 0) << " bytes).\n";
+        fclose(in); fclose(out); fclose(msg); return;
+    }
+
+    fwrite(head, 1, 13, out);
 
     bitStream bs;
     bs.msgSize=bs.left=msgSize;
     unsigned char pix;
 
-    for(int i=header; i<fileSize;i++){
+    // Embed in palette
+    for(int i=0; i<paletteBytes; i++){
         fread(&pix, 1, 1, in);
-        pix= hidePixel(pix, bs, msg);
+        pix = hidePixel(pix, bs, msg);
         fwrite(&pix, 1, 1, out);
     }
+
+    // Copy the rest of the file (Image blocks, extensions, trailer)
+    int ch;
+    while((ch = fgetc(in)) != EOF){
+        fputc(ch, out);
+    }
+
     fclose(in);
     fclose(out);
     fclose(msg);
@@ -65,27 +71,33 @@ void GIFImage::extract(Payload& payload){
         return;
     }
 
-    int fileSize=getFileSize(in);
     unsigned char head[13];
-    fread(head, 1, 13, in);
-    int header=13;
-    if(head[10] & 0x80){
-        int paletteSize=(head[10]&0x07) + 1;
-        header+=3*(1<<paletteSize);
+    if(fread(head, 1, 13, in) != 13){
+        cout<<"Error reading GIF header.\n";
+        fclose(in); fclose(out); return;
     }
-    fseek(in, header, SEEK_SET);
+
+    int paletteBytes = 0;
+    if(head[10] & 0x80){
+        int paletteSize = (head[10] & 0x07) + 1;
+        paletteBytes = 3 * (1 << paletteSize); 
+    }
+
+    if(paletteBytes == 0){
+        cout<<"No Global Color Table found in GIF.\n";
+        fclose(in); fclose(out); return;
+    }
 
     bitStream bs;
     unsigned char pix;
 
-    for(int i=header; i<fileSize; i++){
+    for(int i=0; i<paletteBytes; i++){
         fread(&pix, 1, 1, in);
         if(extractPixel(pix, bs, out)){
-            fclose(in);
-            fclose(out);
-            return;
+            break;
         }
     }
+
     fclose(in);
     fclose(out);
 }
