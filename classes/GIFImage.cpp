@@ -11,9 +11,9 @@ void GIFImage::hide(Payload& payload){
     FILE *msg = fopen(payload.getFilename().c_str(), "rb");
     if(!in || !out || !msg){
         cout<<"Error opening files.\n";
-        if(!in)fclose(in);
-        if(!out)fclose(out);
-        if(!msg)fclose(msg);
+        if(in)fclose(in);
+        if(out)fclose(out);
+        if(msg)fclose(msg);
         return;
     }
 
@@ -63,8 +63,8 @@ void GIFImage::extract(Payload& payload){
     FILE *out=fopen(payload.getFilename().c_str(), "wb");
     if(!in || !out){
         cout<<"Error opening files.\n";
-        if(!in)fclose(in);
-        if(!out)fclose(out);
+        if(in)fclose(in);
+        if(out)fclose(out);
         return;
     }
 
