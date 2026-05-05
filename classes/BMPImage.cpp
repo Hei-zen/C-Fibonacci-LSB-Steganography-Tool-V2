@@ -11,14 +11,20 @@ void BMPImage::hide(Payload& payload){
     FILE* msg=fopen(payload.getFilename().c_str(), "rb");
     if(!in || !out || !msg){
         cout<<"Error opening files.\n";
+        if(in)fclose(in);
+        if(out)fclose(out);
+        if(msg)fclose(msg);
+        return;
+    }
+
+    char head[54];
+    if(fread(head, 1, 54, in) != 54){
+        cout<<"Error reading BMP header.\n";
         fclose(in);
         fclose(out);
         fclose(msg);
         return;
     }
-
-    char head[54];
-    fread(head, 1, 54, in);
     fwrite(head, 1 , 54, out);
     int offset=*(int*)&head[10];
     int width=*(int*)&head[18];
@@ -62,8 +68,8 @@ void BMPImage::extract(Payload& payload){
     FILE* out=fopen(payload.getFilename().c_str(),"wb");
     if(!in || !out){
         cout<<"Error opening files.\n";
-        fclose(in);
-        fclose(out);
+        if (in) fclose(in);
+        if (out) fclose(out);
         return;
     }
 
