@@ -9,12 +9,24 @@
 using namespace std;
 
 Image* createImageHandler(string inFile, string outFile){
-    if(inFile.length() >= 4){
-        string ext = inFile.substr(inFile.length() - 4);
-        if(ext == ".bmp" || ext == ".BMP") return new BMPImage(inFile, outFile);
-        if(ext == ".png" || ext == ".PNG") return new PNGImage(inFile, outFile);
-        if(ext == ".gif" || ext == ".GIF") return new GIFImage(inFile, outFile);
+    FILE* f = fopen(inFile.c_str(), "rb");
+    if (!f) return nullptr;
+    unsigned char header[8];
+    size_t bytesRead = fread(header, 1, 8, f);
+    fclose(f);
+
+    if (bytesRead >= 2 && header[0] == 'B' && header[1] == 'M') {
+        return new BMPImage(inFile, outFile);
     }
+    if (bytesRead >= 8 && header[0] == 0x89 && header[1] == 'P' && header[2] == 'N' && header[3] == 'G' &&
+        header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A) {
+        return new PNGImage(inFile, outFile);
+    }
+    if (bytesRead >= 6 && header[0] == 'G' && header[1] == 'I' && header[2] == 'F' && header[3] == '8' &&
+        (header[4] == '7' || header[4] == '9') && header[5] == 'a') {
+        return new GIFImage(inFile, outFile);
+    }
+
     return nullptr;
 }
 
