@@ -11,9 +11,9 @@ void GIFImage::hide(Payload& payload){
     FILE *msg = fopen(payload.getFilename().c_str(), "rb");
     if(!in || !out || !msg){
         cout<<"Error opening files.\n";
-        fclose(in);
-        fclose(out);
-        fclose(msg);
+        if(!in)fclose(in);
+        if(!out)fclose(out);
+        if(!msg)fclose(msg);
         return;
     }
 
@@ -43,14 +43,11 @@ void GIFImage::hide(Payload& payload){
     bs.msgSize=bs.left=msgSize;
     unsigned char pix;
 
-    // Embed in palette
     for(int i=0; i<paletteBytes; i++){
         fread(&pix, 1, 1, in);
         pix = hidePixel(pix, bs, msg);
         fwrite(&pix, 1, 1, out);
     }
-
-    // Copy the rest of the file (Image blocks, extensions, trailer)
     int ch;
     while((ch = fgetc(in)) != EOF){
         fputc(ch, out);
@@ -66,8 +63,8 @@ void GIFImage::extract(Payload& payload){
     FILE *out=fopen(payload.getFilename().c_str(), "wb");
     if(!in || !out){
         cout<<"Error opening files.\n";
-        fclose(in);
-        fclose(out);
+        if(!in)fclose(in);
+        if(!out)fclose(out);
         return;
     }
 
