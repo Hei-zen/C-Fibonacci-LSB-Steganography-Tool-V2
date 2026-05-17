@@ -30,7 +30,7 @@ void BMPImage::hide(Payload& payload){
     int width=*(int*)&head[18];
     int height=*(int*)&head[22];
     int pad = (4-(width*3)%4)%4;
-
+    height = abs(height);
     int msgSize = getFileSize(msg);
     payload.setSize(msgSize);
 
@@ -58,6 +58,8 @@ void BMPImage::hide(Payload& payload){
         for(int p=0; p<pad;p++)
             fputc(fgetc(in), out);
     }
+    int temp;
+    while((temp=fgetc(in))!=EOF) fputc(temp,out);
     fclose(in);
     fclose(out);
     fclose(msg);
@@ -78,6 +80,7 @@ void BMPImage::extract(Payload& payload){
     int offset=*(int*)&head[10];
     int width=*(int*)&head[18];
     int height=*(int*)&head[22];
+    height = abs(height);
     int pad = (4-(width*3)%4)%4;
     fseek(in, offset, SEEK_SET);
 
