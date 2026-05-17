@@ -6,7 +6,7 @@ Image::Image(string in, string out): inFile(in), outFile(out){}
 bool Image::getbit(int pix){
     if (pix<0)
         pix+=256;
-    for(int i=10;i>=0;i--)
+    for(int i=11;i>=0;i--)
         if(fib[i]<=pix){
             pix-=fib[i];
             if(i==0) 
