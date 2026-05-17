@@ -7,13 +7,13 @@ class Image{
     protected:
         const string inFile;
         const string outFile;
-        int fib[11]={1,2,3,5,8,13,21,34,55,89,144};
+        int fib[12]={1,2,3,5,8,13,21,34,55,89,144,233};
 
         struct bitStream{
             int msgSize=0;
             int left=0;
             int sizeCount=0;
-            char ch=0;
+            unsigned char ch=0;
             int index=0;
         };
 
@@ -25,6 +25,7 @@ class Image{
 
     public:
         Image(string, string);
+        virtual ~Image() = default;
         virtual void hide(Payload&) = 0;
         virtual void extract(Payload&) = 0;
 };
