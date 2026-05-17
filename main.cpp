@@ -8,10 +8,10 @@
 #include "classes/GIFImage.h"
 using namespace std;
 
-Image* createImageHandler(string inFile, string outFile){
+Image*createImageHandler(string inFile, string outFile){
     FILE* f = fopen(inFile.c_str(), "rb");
     if (!f) return nullptr;
-    unsigned char header[8];
+    unsigned char header[8]={'\0','\0','\0','\0','\0','\0','\0','\0'};
     size_t bytesRead = fread(header, 1, 8, f);
     fclose(f);
 
@@ -23,7 +23,7 @@ Image* createImageHandler(string inFile, string outFile){
         return new PNGImage(inFile, outFile);
     }
     if (bytesRead >= 6 && header[0] == 'G' && header[1] == 'I' && header[2] == 'F' && header[3] == '8' &&
-        (header[4] == '7' || header[4] == '9') && header[5] == 'a') {
+        (header[4] == '7' || header[4] == '9') && header[   5] == 'a') {
         return new GIFImage(inFile, outFile);
     }
 
